@@ -91,12 +91,12 @@ public class CompanyController extends ClientController{
     }
 
     @GetMapping("/get-company-coupons-category/{category}")
-    public List<Coupon> getCompanyCoupons(@PathVariable Coupon.Category category, @RequestHeader String token) {
-        return companyService.getCompanyCoupons(category,this.tokensManager.extractClient(token).clientId);
+    public List<Coupon> getCompanyCoupons(@PathVariable String category, @RequestHeader String token) {
+        return companyService.getCompanyCoupons(Coupon.Category.valueOf(category),this.tokensManager.extractClient(token).clientId);
     }
 
-    @GetMapping("/get-company-coupons-max-price")
-    public List<Coupon> getCompanyCoupons(@RequestBody double maxPrice, @RequestHeader String token) {
+    @GetMapping("/get-company-coupons-max-price/{maxPrice}")
+    public List<Coupon> getCompanyCoupons(@PathVariable double maxPrice, @RequestHeader String token) {
         return companyService.getCompanyCoupons(maxPrice,this.tokensManager.extractClient(token).clientId);
     }
 

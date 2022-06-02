@@ -5,6 +5,7 @@ import app.core.exceptions.CouponSystemServiceException;
 import app.core.exceptions.CouponSystemServiceExceptionUnauthorized;
 import app.core.login.ClientType;
 import app.core.repositories.CompanyRepository;
+import app.core.repositories.CustomerRepository;
 import app.core.token.TokensManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,13 +25,19 @@ public class LoginService {
     private TokensManager tokensManager;
     @Autowired
     private CompanyRepository companyRepository;
+    @Autowired
+    private CustomerRepository customerRepository;
 
     public String login(String email, String password, ClientType clientType) throws CouponSystemServiceExceptionUnauthorized {
         if (clientType == ClientType.ADMIN && email.equals(this.email) && password.equals(this.password))
             return tokensManager.generateAdminToken(this.email);
 
         if (clientType == ClientType.COMPANY && companyRepository.existsByEmailAndPassword(email,password)) {
-            return tokensManager.generateToken(new TokensManager.ClientDetails(companyRepository.getByEmailAndPassword(email,password).getId(), "email", clientType));
+            return tokensManager.generateToken(new TokensManager.ClientDetails(companyRepository.getByEmailAndPassword(email,password).getId(), email, clientType));
+        }
+
+        if(clientType == ClientType.CUSTOMER&&customerRepository.existsByEmailAndPassword(email,password)){
+            return tokensManager.generateToken(new TokensManager.ClientDetails(customerRepository.getByEmailAndPassword(email, password).getId(),email,clientType));
         }
         throw new CouponSystemServiceExceptionUnauthorized("login faild - bad credentials");
 

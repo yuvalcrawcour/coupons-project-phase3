@@ -2,6 +2,7 @@ package app.core.controllers;
 
 import app.core.entities.Company;
 import app.core.entities.Coupon;
+import app.core.entities.Customer;
 import app.core.exceptions.CouponSystemServiceException;
 import app.core.exceptions.CouponSystemServiceExceptionBadRequest;
 import app.core.exceptions.CouponSystemServiceExceptionNotFound;
@@ -39,13 +40,42 @@ public class CustomerController extends ClientController{
     @PostMapping("/purchase-coupon")
     public void purchaseCoupon (@RequestBody Coupon coupon, @RequestHeader String token){
         try {
-            this.customerService.purchaseCoupon(coupon);
+            this.customerService.purchaseCoupon(coupon,tokensManager.extractClient(token).getClientId());
         } catch (CouponSystemServiceExceptionNotFound e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         } catch (CouponSystemServiceExceptionBadRequest e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }
+    @GetMapping("/get-customer-coupons")
+    public List<Coupon> getCustomerCoupons(@RequestHeader String token){
+        return this.customerService.getCustomerCoupons(tokensManager.extractClient(token).getClientId());
+    }
+
+    @GetMapping("/get-customer-coupons-by-category/{category}")
+    public List<Coupon> getCustomerCoupons(@PathVariable String category, @RequestHeader String token){
+        return this.customerService.getCustomerCoupons(Coupon.Category.valueOf(category),tokensManager.extractClient(token).getClientId());
+    }
+
+    @GetMapping("/get-customer-coupons-by-max-price/{maxPrice}")
+    public List<Coupon> getCustomerCoupons(@PathVariable double maxPrice, @RequestHeader String token){
+        return this.customerService.getCustomerCoupons(maxPrice,tokensManager.extractClient(token).getClientId());
+    }
+
+    @GetMapping("/get-all-coupons")
+    public List<Coupon> getAllCoupons(@RequestHeader String token){
+        return this.customerService.getAllCoupons();
+    }
+
+    @GetMapping("/get-customer-details")
+    public Customer getCustomerDetails(@RequestHeader String token){
+        try {
+            return this.customerService.getCustomerDetails(tokensManager.extractClient(token).getClientId());
+        } catch (CouponSystemServiceExceptionNotFound e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,e.getMessage());
+        }
+    }
+
 
 //    @PutMapping("/update-coupon")
 //    public void updateCoupon (@RequestBody Coupon coupon,@RequestHeader String token){

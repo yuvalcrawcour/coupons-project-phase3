@@ -20,7 +20,7 @@ import java.util.Optional;
 
 @Service
 @Transactional
-@Scope("prototype")
+
 public class CompanyService extends ClientService{
 
 

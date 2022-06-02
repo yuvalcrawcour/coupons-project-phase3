@@ -19,9 +19,9 @@ import java.util.Optional;
 
 @Service
 @Transactional
-@Scope("prototype")
+
 public class CustomerService extends ClientService{
-    private int customerId = 1;
+
 
 
     @Autowired
@@ -33,16 +33,18 @@ public class CustomerService extends ClientService{
     @Override
     public boolean login(String email, String password) throws CouponSystemServiceException {
         if(this.customerRepository.existsByEmailAndPassword(email, password)){
-            this.customerId = this.customerRepository.getByEmailAndPassword(email,password).getId();
             return true;
         }
         return false;
 
     }
+    public List<Coupon> getAllCoupons(){
+        return this.couponRepository.findAll();
+    }
 
-    public void purchaseCoupon(Coupon coupon) throws CouponSystemServiceExceptionNotFound, CouponSystemServiceExceptionBadRequest {
+    public void purchaseCoupon(Coupon coupon,int customerId) throws CouponSystemServiceExceptionNotFound, CouponSystemServiceExceptionBadRequest {
         for (Coupon cur:
-             getCustomerCoupons()) {
+             getCustomerCoupons(customerId)) {
             if(cur.getId() == coupon.getId()){
                 throw new CouponSystemServiceExceptionBadRequest("cannot buy the same coupon more than once");
             }
@@ -57,19 +59,19 @@ public class CustomerService extends ClientService{
         if(couponFromDb.getEndDate().isBefore(LocalDate.now())){
             throw new CouponSystemServiceExceptionBadRequest("coupon is expired");
         }
-        Customer thisCustomer = this.getCustomerDetails();
+        Customer thisCustomer = this.getCustomerDetails(customerId);
         thisCustomer.purchaseCoupon(couponFromDb);
         couponFromDb.setAmount(couponFromDb.getAmount()-1);
     }
 
-    public List<Coupon> getCustomerCoupons(){
+    public List<Coupon> getCustomerCoupons(int customerId){
 //        return getCustomerDetails().getCoupons();
-        return this.couponRepository.findByCustomerListId(this.customerId);
+        return this.couponRepository.findByCustomerListId(customerId);
     }
 
     //TODO
-    public ArrayList<Coupon> getCustomerCoupons(Coupon.Category category) throws CouponSystemServiceException {
-        List<Integer> couponIdList = this.couponRepository.getCouponIdsByCustomerIdAndCategory(this.customerId,category.toString());
+    public ArrayList<Coupon> getCustomerCoupons(Coupon.Category category,int customerId)  {
+        List<Integer> couponIdList = this.couponRepository.getCouponIdsByCustomerIdAndCategory(customerId,category.toString());
         ArrayList<Coupon> couponArrayList = new ArrayList<>();
         for (Integer cur:
              couponIdList) {
@@ -78,8 +80,8 @@ public class CustomerService extends ClientService{
         return couponArrayList;
     }
     //TODO
-    public ArrayList<Coupon> getCustomerCoupons(double maxPrice) throws CouponSystemServiceException {
-        List<Integer> couponIdList = this.couponRepository.getCouponIdsByCustomerIdAndMaxPrice(this.customerId,maxPrice);
+    public ArrayList<Coupon> getCustomerCoupons(double maxPrice,int customerId) {
+        List<Integer> couponIdList = this.couponRepository.getCouponIdsByCustomerIdAndMaxPrice(customerId,maxPrice);
         ArrayList<Coupon> couponArrayList = new ArrayList<>();
         for (Integer cur:
                 couponIdList) {
@@ -88,7 +90,7 @@ public class CustomerService extends ClientService{
         return couponArrayList;
     }
 
-    public Customer getCustomerDetails() throws CouponSystemServiceExceptionNotFound {
+    public Customer getCustomerDetails(int customerId) throws CouponSystemServiceExceptionNotFound {
         Optional<Customer> opt =  this.customerRepository.findById(customerId);
         if(!opt.isPresent()){
             throw new CouponSystemServiceExceptionNotFound("customer was not found");
