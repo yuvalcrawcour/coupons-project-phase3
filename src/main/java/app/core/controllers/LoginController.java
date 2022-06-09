@@ -2,8 +2,10 @@ package app.core.controllers;
 
 import app.core.exceptions.CouponSystemException;
 import app.core.exceptions.CouponSystemServiceException;
+import app.core.exceptions.CouponSystemServiceExceptionUnauthorized;
 import app.core.login.ClientType;
 import app.core.login.LoginManager;
+import app.core.token.TokensManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -24,13 +26,16 @@ public class LoginController {
 
     @Autowired
     private LoginService loginService;
+    @Autowired
+    private TokensManager tokensManager;
 
     @PostMapping(consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public String login(@RequestParam String email, @RequestParam String password,@RequestParam ClientType clientType) throws ResponseStatusException {
         try {
-            String token = this.loginService.login(email, password,clientType);
+            int id = this.loginService.login(email, password,clientType);
+            String token =this.tokensManager.generateToken(new TokensManager.ClientDetails(id,email,clientType));
             return token;
-        } catch (CouponSystemException e) {
+        } catch (CouponSystemServiceExceptionUnauthorized e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage());
     }
 

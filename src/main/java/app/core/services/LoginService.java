@@ -22,22 +22,20 @@ public class LoginService {
     @Value("${app.login.password}")
     private String password;
     @Autowired
-    private TokensManager tokensManager;
-    @Autowired
     private CompanyRepository companyRepository;
     @Autowired
     private CustomerRepository customerRepository;
 
-    public String login(String email, String password, ClientType clientType) throws CouponSystemServiceExceptionUnauthorized {
+    public int login(String email, String password, ClientType clientType) throws CouponSystemServiceExceptionUnauthorized {
         if (clientType == ClientType.ADMIN && email.equals(this.email) && password.equals(this.password))
-            return tokensManager.generateAdminToken(this.email);
+            return 1111;
 
         if (clientType == ClientType.COMPANY && companyRepository.existsByEmailAndPassword(email,password)) {
-            return tokensManager.generateToken(new TokensManager.ClientDetails(companyRepository.getByEmailAndPassword(email,password).getId(), email, clientType));
+            return companyRepository.getByEmailAndPassword(email,password).getId();
         }
 
         if(clientType == ClientType.CUSTOMER&&customerRepository.existsByEmailAndPassword(email,password)){
-            return tokensManager.generateToken(new TokensManager.ClientDetails(customerRepository.getByEmailAndPassword(email, password).getId(),email,clientType));
+            return customerRepository.getByEmailAndPassword(email, password).getId();
         }
         throw new CouponSystemServiceExceptionUnauthorized("login faild - bad credentials");
 
