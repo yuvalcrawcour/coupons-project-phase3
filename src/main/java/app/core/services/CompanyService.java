@@ -45,7 +45,7 @@ public class CompanyService extends ClientService{
 //        if(companyId!=this.companyId){
 //            throw new CouponSystemServiceExceptionBadRequest("the company of the coupon has to be similar to  company that owns the service");
 //        }
-        //TODO להכניס בדיקה של התאריכים
+
         if(coupon.getStartDate().isBefore(LocalDate.now())||coupon.getEndDate().isBefore(coupon.getStartDate())){
             throw new CouponSystemServiceExceptionBadRequest("something is wrong with the dates of the coupon");
         }
